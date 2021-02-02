@@ -1,0 +1,737 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>ContentFilters</key>
+	<dict/>
+	<key>auto_connect</key>
+	<true/>
+	<key>data</key>
+	<dict>
+		<key>connection</key>
+		<dict>
+			<key>database</key>
+			<string>test</string>
+			<key>host</key>
+			<string>127.0.0.1</string>
+			<key>kcid</key>
+			<string>9164778625333691011</string>
+			<key>name</key>
+			<string>127.0.0.1</string>
+			<key>rdbms_type</key>
+			<string>mysql</string>
+			<key>sslCACertFileLocation</key>
+			<string></string>
+			<key>sslCACertFileLocationEnabled</key>
+			<integer>0</integer>
+			<key>sslCertificateFileLocation</key>
+			<string></string>
+			<key>sslCertificateFileLocationEnabled</key>
+			<integer>0</integer>
+			<key>sslKeyFileLocation</key>
+			<string></string>
+			<key>sslKeyFileLocationEnabled</key>
+			<integer>0</integer>
+			<key>type</key>
+			<string>SPTCPIPConnection</string>
+			<key>useSSL</key>
+			<integer>0</integer>
+			<key>user</key>
+			<string>root</string>
+		</dict>
+		<key>session</key>
+		<dict>
+			<key>connectionEncoding</key>
+			<string>utf8mb4</string>
+			<key>contentFilterV2</key>
+			<dict>
+				<key>children</key>
+				<array/>
+				<key>filterClass</key>
+				<string>groupNode</string>
+				<key>isConjunction</key>
+				<true/>
+			</dict>
+			<key>contentPageNumber</key>
+			<integer>1</integer>
+			<key>contentSelection</key>
+			<data>
+			YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0
+			b3BYJG9iamVjdHMSAAGGoF8QD05TS2V5ZWRBcmNoaXZlctEICVRk
+			YXRhgAGtCwwZGhscHSEoLDA0OFUkbnVsbNMNDg8QFBhXTlMua2V5
+			c1pOUy5vYmplY3RzViRjbGFzc6MREhOAAoADgASjFRYXgAWABoAI
+			gAxUdHlwZVRyb3dzVGtleXNfECZTZWxlY3Rpb25EZXRhaWxUeXBl
+			UHJpbWFyeUtleWVkRGV0YWlsc9MNDg8eHyCgoIAH0iIjJCVaJGNs
+			YXNzbmFtZVgkY2xhc3Nlc18QE05TTXV0YWJsZURpY3Rpb25hcnmj
+			JCYnXE5TRGljdGlvbmFyeVhOU09iamVjdNIODykroSqACYAL0g8t
+			Li9ZTlMuc3RyaW5ngApSSWTSIiMxMl8QD05TTXV0YWJsZVN0cmlu
+			Z6MxMydYTlNTdHJpbmfSIiM1Nl5OU011dGFibGVBcnJheaM1NydX
+			TlNBcnJhedIiIyY5oiYnAAgAEQAaACQAKQAyADcASQBMAFEAUwBh
+			AGcAbgB2AIEAiACMAI4AkACSAJYAmACaAJwAngCjAKgArQDWAN0A
+			3gDfAOEA5gDxAPoBEAEUASEBKgEvATEBMwE1AToBRAFGAUkBTgFg
+			AWQBbQFyAYEBhQGNAZIAAAAAAAACAQAAAAAAAAA6AAAAAAAAAAAA
+			AAAAAAABlQ==
+			</data>
+			<key>contentSortColIsAsc</key>
+			<true/>
+			<key>contentViewport</key>
+			<string>{{0, 0}, {678, 783}}</string>
+			<key>isToolbarVisible</key>
+			<true/>
+			<key>queries</key>
+			<string>/* SQL problems */
+
+/* 175. Combine two tables */
+create table if not exists Person
+	(PersonId int primary key,
+	FirstName varchar(20),
+	LastName varchar(20));
+insert into Person
+	values
+	(1, 'John', 'Green');
+
+create table if not exists Address
+	(AddressId int primary key,
+	PersonId int,
+	City varchar(20),
+	State varchar(20));
+insert into Address
+	values
+	(1, 1, 'Seattle', 'WA');
+	
+select FirstName, LastName, city, state from Person
+left join Address
+on Person.PersonId = Address.PersonId;
+
+
+/* 176. Second Highest Salary */
+create table if not exists Employee
+	(Id int primary key,
+	Salary float default 10);
+insert into Employee
+	values
+	(1, 100),
+	(2, 200),
+	(3, 300);
+insert into Employee
+	values
+	(4, 200),
+	(5, 300);
+	
+select distinct Salary SecondHighestSalary
+from Employee
+order by Salary desc
+limit 1, 1;
+
+
+/* 177. Nth Highest Salary 有问题无法运行 !!!!!!!!!*/
+create function getNthHighestSalary(N int) returns int
+begin
+declare M int;
+set M=N-1;
+	return(
+		select distinct Salary 
+		from Employee
+		order by Salary desc
+		limit M, 1
+	);
+	end;
+
+
+/* 603. Consecutive available seats !!!!!!!!!!!!!!*/
+create table if not exists cinema
+	(seat_id int primary key auto_increment,
+	free tinyint(1));
+insert into cinema
+	values
+	(null, 1),
+	(null, 0),
+	(null, 1),
+	(null, 1),
+	(null, 1);
+
+select distinct a.seat_id  /* solution 1 */
+from cinema a
+join cinema b
+on abs(a.seat_id-b.seat_id) = 1
+where a.free = 1 and b.free = 1
+order by a.seat_id;
+
+select a.seat_id /* solution 2 */
+from cinema a 
+where a.free = 1 and 
+	(
+	a.seat_id + 1 in (select seat_id from cinema where free = 1)
+	or
+	a.seat_id - 1 in (select seat_id from cinema where free = 1)
+)
+order by a.seat_id;
+
+
+/* 180. Consecutive numbers */
+create table if not exists Log
+	(Id int primary key auto_increment,
+	Num int);
+insert into Log
+	values
+	(null, 1),
+	(null, 1),
+	(null, 1),
+	(null, 2),
+	(null, 1),
+	(null, 2),
+	(null, 2);
+	
+select conse.Num  /* solution 1 */
+from (
+select distinct a.Id, a.Num
+from Log a
+join Log b
+on abs(a.Id-b.Id) = 1
+where a.Num-b.Num = 0
+order by a.Id
+) conse
+group by conse.Num
+having count(*) &gt;= 3;
+
+select distinct l1.Num from Log l1, Log l2, Log l3 /* solution 2 */
+where l1.Id = l2.Id -1 and l2.Id = l3.Id -1
+and l1.Num = l2.Num and l2.Num = l3.Num;
+
+
+/* 184. Department Highest Salary !!!!!!*/
+create table if not exists Employee184
+	(Id int primary key,
+	Name varchar(20),
+	Salary float default 10,
+	DepartmentId int);
+create table if not exists Department
+	(Id int primary key auto_increment,
+	Name varchar(20));
+insert into Employee184
+	values
+	(1, 'joe', 70000, 1),
+	(2, 'henry', 80000, 2),
+	(3, 'sam', 60000, 2),
+	(4, 'max', 90000, 1);
+insert into Department
+	values
+	(null, 'IT'),
+	(null, 'Sales');
+	
+select b.Name department, a.Name Employee, a.Salary
+from Employee184 a
+left join Department b
+on a.DepartmentId = b.Id
+where a.Salary = (select max(Salary) from Employee184 where Employee184.DepartmentId = b.Id);
+
+
+/* 185. Department top three salaries !!!!!!!!!!!!!!!*/
+insert into Employee184
+	values
+	(5, 'Janet', 69000, 1),
+	(6, 'Randy', 85000, 1);
+
+/* first find the first three salaries in this whole table */
+select e2.* from Employee184 e1, Employee184 e2
+where e1.Salary &lt;= e2.Salary
+group by e2.Name, e2.Id
+having count(*) &gt;= 4
+order by e2.Salary desc;
+
+/* second find the first three in each group */
+select d.Name Department, e2.Name Employee, e2.Salary
+from Employee184 e1, Employee184 e2, Department d
+where e1.Salary &gt;= e2.Salary
+and e1.DepartmentId = d.Id
+and e1.DepartmentId = e2.DepartmentId
+group by d.Name, e2.Name, e2.Salary
+having count(e2.Name) &lt;= 3
+order by d.Name, e2.Salary desc;
+
+
+/* 595. Big countries */
+create table if not exists World
+	(name varchar(20),
+	continent varchar(20),
+	area float default 10,
+	population float default 10,
+	gdp float default 10);
+insert into World
+	values
+	('Afh', 'Asia', 652230, 25500100, 20343000),
+	('alb', 'Europe', 28748, 2831741, 12960000),
+	('alg', 'Africa', 2381741, 37100000, 18868100),
+	('And', 'Europe', 468, 78115, 3712000),
+	('ang', 'Africa', 1246700, 20609294, 100990000);
+	
+select name, population, area 
+from World
+where area &gt; 3000000
+or population &gt; 25000000;
+
+
+/* 196. Delete duplicate emails !!!!!!!!!!! */
+create table if not exists Person1
+	(Id int primary key auto_increment,
+	Email varchar(40));
+insert into Person1
+	values
+	(null, 'john@example.com'),
+	(null, 'bob@example.com'),
+	(null, 'john@example.com');
+	
+select * from Person1
+where Id in 
+		(select min(Id) from Person1
+		group by Email);
+		
+
+/* 626. Exchange seats  !!!!!! */
+create table if not exists seat
+	(id int primary key auto_increment,
+	student varchar(20));
+insert into seat
+	values
+	(null, 'abbot'),
+	(null, 'doris'),
+	(null, 'emerson'),
+	(null, 'green'),
+	(null, 'james');
+	
+select 
+	case
+	when seat.id % 2 != 0 and seat.id = (select count(*) from seat) then seat.id
+	when seat.id % 2 = 0 then seat.id - 1
+	else seat.id + 1
+	end id, student
+from seat
+order by id;
+
+
+/* 569. Median employee salary */
+create table Employee569
+	(Id int primary key auto_increment,
+	Company varchar(3),
+	Salary float default 10);
+insert into Employee569
+	values
+	(null, 'A', 2341),
+	(null, 'A', 341),
+	(null, 'A', 15),
+	(null, 'A', 15314),
+	(null, 'A', 451),
+	(null, 'A', 513),
+	(null, 'B', 15),
+	(null, 'B', 13),
+	(null, 'B', 1154),
+	(null, 'B', 1345),
+	(null, 'B', 1221),
+	(null, 'B', 234),
+	(null, 'C', 2345),
+	(null, 'C', 2645),
+	(null, 'C', 2645),
+	(null, 'C', 2652),
+	(null, 'C', 65);
+	
+select Id, Company, Salary
+from Employee569 e
+where abs((select count(*) from Employee569 e1 
+		   where e1.Company = e.Company and e.Salary &gt;= e1.Salary)-
+		  (select count(*) from Employee569 e2 
+		   where e2.Company = e.Company and e.Salary &lt;= e2.Salary)) &lt;= 1;
+
+
+/* 615. Average salary: departments vs. company */
+create table salary615
+	(id int primary key auto_increment,
+	employee_id int,
+	amount float default 10,
+	pay_data date);
+create table employee615
+	(employee_id int,
+	department_id int);
+insert into employee615
+	values
+	(1, 1),
+	(2, 2),
+	(3, 2);
+insert into salary615
+	values
+	(null, 1, 9000, '2017-03-31'),
+	(null, 2, 6000, '2017-03-31'),
+	(null, 3, 10000, '2017-03-31'),
+	(null, 1, 7000, '2017-02-28'),
+	(null, 2, 6000, '2017-02-28'),
+	(null, 3, 8000, '2017-02-28');
+
+select n.pay_month, n.department_id,
+	(case
+	when n.avg_dep &gt; (select avg(amount) ave_salary from salary615) then 'higher'
+	when n.avg_dep = (select avg(amount) ave_salary from salary615) then 'same'
+	else 'lower'
+	end) comparison
+from (select left(s.pay_data, 7) pay_month, e.department_id, avg(amount) avg_dep
+	  from salary615 s, employee615 e 
+	  where s.employee_id = e.employee_id
+	  group by s.pay_data, e.department_id) n;
+	  
+	  
+/* 570. Managers with at least 5 direct reports */
+create table Employee570
+	(Id int primary key,
+	Name varchar(20),
+	Department varchar(3),
+	ManagerId int);
+insert into Employee570
+	values
+	(101, 'john', 'a', null),
+	(102, 'dan', 'a', 101),
+	(103, 'james', 'a', 101),
+	(104, 'amy', 'a', 101),
+	(105, 'anne', 'a', 101),
+	(106, 'ron', 'b', 101);
+	
+select Name from Employee570
+where Id in (
+	select ManagerId 
+	from Employee570
+	group by ManagerId
+	having count(*) &gt;= 5
+	);
+
+
+/* 597. Friend requests I: overall acceptance rate */
+create table friend_request
+	(sender_id int,
+	send_to_id int,
+	request_date date);
+create table request_accepted
+	(requester_id int,
+	accepter_id int,
+	accept_date date);
+insert into friend_request
+	values
+	(1, 2, '2016-06-01'),
+	(1, 3, '2016-06-01'),
+	(1, 4, '2016-06-01'),
+	(2, 3, '2016-06-02'),
+	(3, 4, '2016-06-09');
+insert into request_accepted
+	values
+	(1, 2, '2016-06-03'),
+	(1, 3, '2016-06-08'),
+	(2, 3, '2016-06-08'),
+	(3, 4, '2016-06-09');
+insert into request_accepted
+	values
+	(3,4, '2016-06-10');
+	
+select round( ifnull(count(distinct requester_id, accepter_id) /
+					count(distinct sender_id, send_to_id), 0), 2) accept_rate
+from friend_request, request_accepted;
+
+
+/* 574. Winning candidate */
+create table Candidate
+	(id int primary key auto_increment,
+	Name varchar(20));
+create table Vote
+	(id int primary key auto_increment,
+	CandidateId int);
+insert into Candidate
+	values
+	(null, 'A'),
+	(null, 'B'),
+	(null, 'C'),
+	(null, 'D'),
+	(null, 'E');
+insert into Vote
+	values
+	(null, 2),
+	(null, 4),
+	(null, 3),
+	(null, 2),
+	(null, 5);
+	
+# the votes for each candidate #
+
+select c.Name winner from Candidate c
+where c.id = (
+	select CandidateId from Vote
+	group by CandidateId
+	order by count(*) desc
+	limit 1
+);
+
+
+/* 178. Rank scores !!!!!!!!!!!!*/
+create table Scores178
+	(Id int primary key auto_increment,
+	Score float default 10);
+insert into Scores178
+	values
+	(null, 3.50),
+	(null, 3.65),
+	(null, 4.00),
+	(null, 3.85),
+	(null, 4.00),
+	(null, 3.65),
+	(null, 3.30);
+	
+select Score, 
+	   (select count(distinct Score) from Scores178 
+		where Score &gt;= s.Score) as 'Rank'
+from Scores178 s
+order by s.Score desc;
+
+
+/* 579. Find cumulative salary of an employee !!!!!!!!!!!! */
+create table Employee579
+	(Id int,
+	Month int,
+	Salary float default 10);
+insert into Employee579
+	values
+	(1, 1, 20),
+	(2, 1, 20),
+	(1, 2, 30),
+	(2, 2, 30),
+	(3, 2, 40),
+	(1, 3, 40),
+	(3, 3, 60),
+	(1, 4, 60),
+	(3, 4, 70);
+	
+select e2.Id, e2.Month, sum(e2.Salary) 
+from Employee579 e2
+where e2.Month != (select max(Month) from Employee579 where Id = e2.Id)
+group by e2.Id, e2.Month
+order by e2.Id;	 /* ????????????????*/
+	
+	
+/* 608. Tree Node */
+create table tree
+	(id int,
+	p_id int);
+insert into tree
+	values
+	(1, null),
+	(2, 1),
+	(3, 1),
+	(4, 2),
+	(5, 2);
+	
+select t.id, 
+		 if(isnull(t.p_id), 'Root', if(t.id in (select p_id from tree), 'Inner',
+		 'Leaf')) Type
+from tree t;
+
+
+/* 610. Triangle Judgement */
+create table triangle
+	(x float default 10,
+	y float default 10,
+	z float default 10);
+insert into triangle
+	values
+	(12, 15, 30),
+	(10, 20, 15);
+	
+select x, y, z, 
+		case
+		when x+y&gt;z and y+z&gt;x and z+x&gt;y then 'Yes'
+		else 'No'
+		end triangle
+from triangle;
+	
+	
+/* 180. Consecutive Numbers !!!!!!!!!!  */
+select l1.Num ConsecutiveNums 
+from Log l1, Log l2, Log l3
+where l1.Num = l2.Num and l2.Num = l3.Num
+and l1.Id = l2.Id-1 and l2.Id = l3.Id-1;
+	
+	
+/* 181. Employees earning more than their managers */
+create table Employee181
+	(Id int primary key auto_increment,
+	Name varchar(20),
+	Salary float default 10,
+	ManagerId int);
+insert into Employee181
+	values
+	(null, 'joe', 70000, 3),
+	(null, 'henry', 80000, 4),
+	(null, 'sam', 60000, null),
+	(null, 'max', 90000, null);
+	
+select e1.Name Employee
+from Employee181 e1
+left join Employee181 e2
+on e1.ManagerId = e2.Id
+where e1.Salary &gt; e2.Salary;
+	
+	
+/* 182. Duplicate emails */
+select distinct p1.Email
+from Person1 p1, Person1 p2
+where p1.Email = p2.Email and p1.Id != p2.Id;
+
+select Email
+from Person1
+group by Email
+having count(*) &gt; 1;
+
+
+/* 183. Customers who never order */
+create table Customers
+	(Id int primary key auto_increment,
+	Name varchar(20));
+insert into Customers
+	values
+	(null, 'Joe'),
+	(null, 'Henry'),
+	(null, 'Sam'),
+	(null, 'Max');
+create table Orders
+	(Id int primary key auto_increment,
+	CustomerId int);
+insert into Orders
+	values
+	(null, 3),
+	(null, 1);
+	
+select Name
+from Customers
+where Customers.Id not in (select distinct CustomerId from Orders);
+
+select c1.Name
+from Customers c1
+left join Orders o1
+on c1.Id = o1.CustomerId
+where o1.Id is null;
+
+
+/* 196. Delete duplicate emails */
+delete p1
+from Person1 p1, Person1 p2
+where p1.Email = p2.Email and p1.Id &gt; p2.Id;
+
+select * from Person1;
+
+
+
+	
+	
+	
+	</string>
+			<key>table</key>
+			<string>Person1</string>
+			<key>view</key>
+			<string>SP_VIEW_CUSTOMQUERY</string>
+			<key>windowVerticalDividerPosition</key>
+			<real>123</real>
+		</dict>
+	</dict>
+	<key>encrypted</key>
+	<false/>
+	<key>format</key>
+	<string>connection</string>
+	<key>queryFavorites</key>
+	<array/>
+	<key>queryHistory</key>
+	<array>
+		<string>delete p1
+from Person1 p1, Person1 p2
+where p1.Email = p2.Email and p1.Id &gt; p2.Id;
+select * from Person1</string>
+		<string>delete p1
+from Person1 p1, Person1 p2
+where p1.Email = p2.Email and p1.Id &gt; p2.Id;
+select * from p1</string>
+		<string>delete p1
+from Person1 p1, Person1 p2
+where p1.Email = p2.Email and p1.Id &gt; p2.Id</string>
+		<string>select p1.*
+from Person1 p1, Person1 p2
+where p1.Email = p2.Email and p1.Id &lt;= p2.Id</string>
+		<string>select p1.*
+from Person1 p1, Person1 p2
+where p1.Email = p2.Email and p1.Id &gt;= p2.Id</string>
+		<string>select p1.*
+from Person1 p1, Person1 p2
+where p1.Email = p2.Email</string>
+		<string>select p1.*
+from Person1 p1, Person2 p2
+where p1.Email = p2.Email and p1.Id &gt;= p2.Id</string>
+		<string>select c1.Name
+from Customers c1
+left join Orders o1
+on c1.Id = o1.CustomerId
+where o1.Id is null</string>
+		<string>select Name
+from Customers
+where Customers.Id not in (select distinct CustomerId from Orders)</string>
+		<string>insert into Orders
+	values
+	(null, 3),
+	(null, 1)</string>
+		<string>create table Orders
+	(Id int primary key auto_increment,
+	CustomerId int)</string>
+		<string>create table Customers
+	(Id int primary key auto_increment,
+	Name varchar(20));
+insert into Customers
+	values
+	(null, 'Joe'),
+	(null, 'Henry'),
+	(null, 'Sam'),
+	(null, 'Max')</string>
+		<string>insert into Customers
+	values
+	(null, 'Joe'),
+	(null, 'Henry'),
+	(null, 'Sam'),
+	(null, 'Max')</string>
+		<string>create table Customers
+	(Id int primary key auto_increment,
+	Name varchar(2))</string>
+		<string>create table Customers
+	(Id int primary key auto_increment,
+	Name varchar(2));
+insert into Customers
+	values
+	(null, 'Joe'),
+	(null, 'Henry'),
+	(null, 'Sam'),
+	(null, 'Max')</string>
+		<string>select Email
+from Person1
+group by Email
+having count(*) &gt; 1</string>
+		<string>select p1.Email
+from Person1
+group by Email
+having count(*) &gt; 1</string>
+		<string>/* 182. Duplicate emails */
+select distinct p1.Email
+from Person1 p1, Person1 p2
+where p1.Email = p2.Email and p1.Id != p2.Id</string>
+		<string>/* 182. Duplicate emails */
+select p1.Email
+from Person1 p1, Person1 p2
+where p1.Email = p2.Email and p1.Id != p2.Id</string>
+		<string>/* 182. Duplicate emails */
+select *
+from Person1</string>
+	</array>
+	<key>rdbms_type</key>
+	<string>mysql</string>
+	<key>rdbms_version</key>
+	<string>8.0.20</string>
+	<key>version</key>
+	<integer>1</integer>
+</dict>
+</plist>

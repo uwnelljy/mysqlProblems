@@ -58,19 +58,15 @@
 			<data>
 			YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0
 			b3BYJG9iamVjdHMSAAGGoF8QD05TS2V5ZWRBcmNoaXZlctEICVRk
-			YXRhgAGtCwwZGhscHSEoLDA0OFUkbnVsbNMNDg8QFBhXTlMua2V5
-			c1pOUy5vYmplY3RzViRjbGFzc6MREhOAAoADgASjFRYXgAWABoAI
-			gAxUdHlwZVRyb3dzVGtleXNfECZTZWxlY3Rpb25EZXRhaWxUeXBl
-			UHJpbWFyeUtleWVkRGV0YWlsc9MNDg8eHyCgoIAH0iIjJCVaJGNs
-			YXNzbmFtZVgkY2xhc3Nlc18QE05TTXV0YWJsZURpY3Rpb25hcnmj
-			JCYnXE5TRGljdGlvbmFyeVhOU09iamVjdNIODykroSqACYAL0g8t
-			Li9ZTlMuc3RyaW5ngApSSWTSIiMxMl8QD05TTXV0YWJsZVN0cmlu
-			Z6MxMydYTlNTdHJpbmfSIiM1Nl5OU011dGFibGVBcnJheaM1NydX
-			TlNBcnJhedIiIyY5oiYnAAgAEQAaACQAKQAyADcASQBMAFEAUwBh
-			AGcAbgB2AIEAiACMAI4AkACSAJYAmACaAJwAngCjAKgArQDWAN0A
-			3gDfAOEA5gDxAPoBEAEUASEBKgEvATEBMwE1AToBRAFGAUkBTgFg
-			AWQBbQFyAYEBhQGNAZIAAAAAAAACAQAAAAAAAAA6AAAAAAAAAAAA
-			AAAAAAABlQ==
+			YXRhgAGoCwwXGBkaHiVVJG51bGzTDQ4PEBMWV05TLmtleXNaTlMu
+			b2JqZWN0c1YkY2xhc3OiERKAAoADohQVgASABYAHVHR5cGVUcm93
+			c18QHVNlbGVjdGlvbkRldGFpbFR5cGVOU0luZGV4U2V00hsPHB1c
+			TlNSYW5nZUNvdW50EACABtIfICEiWiRjbGFzc25hbWVYJGNsYXNz
+			ZXNaTlNJbmRleFNldKIjJFpOU0luZGV4U2V0WE5TT2JqZWN00h8g
+			JidcTlNEaWN0aW9uYXJ5oiYkAAgAEQAaACQAKQAyADcASQBMAFEA
+			UwBcAGIAaQBxAHwAgwCGAIgAigCNAI8AkQCTAJgAnQC9AMIAzwDR
+			ANMA2ADjAOwA9wD6AQUBDgETASAAAAAAAAACAQAAAAAAAAAoAAAA
+			AAAAAAAAAAAAAAABIw==
 			</data>
 			<key>contentSortColIsAsc</key>
 			<true/>
@@ -621,13 +617,111 @@ where p1.Email = p2.Email and p1.Id &gt; p2.Id;
 select * from Person1;
 
 
+/* 197. Rising temperature */
+create table Weather
+	(Id int primary key auto_increment,
+	RecordDate date,
+	Temperature int);
+insert into Weather
+	values
+	(null, '2015-01-01', 10),
+	(null, '2015-01-02', 25),
+	(null, '2015-01-03', 20),
+	(null, '2015-01-04', 30);
+
+select w1.Id
+from Weather w1, Weather w2
+where datediff(w1.RecordDate, w2.RecordDate) = 1
+and w1.Temperature &gt; w2.Temperature;
+
+
+/* 262. Trips and users */
+create table Users
+	(Users_Id int primary key,
+	Banned varchar(20),
+	Role enum('client', 'driver', 'partner'));
+insert into Users
+	values
+	(1, 'No', 1),
+	(2, 'Yes', 1),
+	(3, 'No', 1),
+	(4, 'No', 1),
+	(10, 'No', 2),
+	(11, 'No', 2),
+	(12, 'No', 2),
+	(13, 'No', 2);
+create table Trips
+	(Id int primary key auto_increment,
+	Client_Id int,
+	Driver_Id int,
+	City_Id int,
+	Status enum('completed', 'cancelled_by_driver', 'cancelled_by_client'),
+	Request_at date,
+	foreign key (Client_Id) references Users (Users_Id),
+	foreign key (Driver_Id) references Users (Users_Id));
+insert into Trips
+	values
+	(null,1, 10, 1, 1, '2013-10-01'),
+	(null,2, 11, 1, 2, '2013-10-01'),
+	(null,3, 12, 6, 1, '2013-10-01'),
+	(null,4, 13, 6, 3, '2013-10-01'),
+	(null,1, 10, 1, 1, '2013-10-02'),
+	(null,2, 11, 6, 1, '2013-10-02'),
+	(null,3, 12, 6, 1, '2013-10-02'),
+	(null,2, 12, 12, 1, '2013-10-03'),
+	(null,3, 10, 12, 1, '2013-10-03'),
+	(null,4, 13, 12, 2, '2013-10-03');
+	
+/* calculate total cancellation rate */
+select (select count(*) from Trips where Status != 1)/count(*) 'cancellation rate'
+from Trips;
+
+/* unbanned users */
+select Trips.* from Trips
+left join Users
+on Trips.Client_Id = Users.Users_Id
+where Users.Banned != 'Yes';
+
+/* calculate cancellation rate each day */
+select t.Request_at Day, 
+		 round(if(isnull(cancel/total), 0, cancel/total), 2) 'cancellation rate' from (
+	select Request_at, count(*) total
+	from Trips
+	left join Users
+	on Trips.Client_Id = Users.Users_Id
+	where Users.Banned != 'Yes'
+	group by Request_at
+	) t
+left join (
+	select Trips.Request_at, count(*) cancel 
+	from Trips
+	left join Users
+	on Trips.Client_Id = Users.Users_Id
+	where Users.Banned != 'Yes'
+	and Status != 1
+	group by Request_at
+	) c
+on t.Request_at = c.Request_at;
+
+/* good solution~*/
+/* generate a table meeting the requirements */
+select newt.Request_at Day,
+		 round(sum(case when newt.Status != 1 then 1 else 0 end)/count(*), 2) 'Cancellation Rate'
+from (
+	select * from Trips t
+	where t.Client_Id in (select Users_Id from Users where Banned='No')
+	and t.Driver_Id in (select Users_Id from Users where Banned='No')
+	and t.`Request_at` between '2013-10-01' and '2013-10-03'
+	) newt
+group by newt.Request_at
+
+
+
+
 
 	
 	
-	
 	</string>
-			<key>table</key>
-			<string>Person1</string>
 			<key>view</key>
 			<string>SP_VIEW_CUSTOMQUERY</string>
 			<key>windowVerticalDividerPosition</key>
@@ -642,90 +736,224 @@ select * from Person1;
 	<array/>
 	<key>queryHistory</key>
 	<array>
-		<string>delete p1
-from Person1 p1, Person1 p2
-where p1.Email = p2.Email and p1.Id &gt; p2.Id;
-select * from Person1</string>
-		<string>delete p1
-from Person1 p1, Person1 p2
-where p1.Email = p2.Email and p1.Id &gt; p2.Id;
-select * from p1</string>
-		<string>delete p1
-from Person1 p1, Person1 p2
-where p1.Email = p2.Email and p1.Id &gt; p2.Id</string>
-		<string>select p1.*
-from Person1 p1, Person1 p2
-where p1.Email = p2.Email and p1.Id &lt;= p2.Id</string>
-		<string>select p1.*
-from Person1 p1, Person1 p2
-where p1.Email = p2.Email and p1.Id &gt;= p2.Id</string>
-		<string>select p1.*
-from Person1 p1, Person1 p2
-where p1.Email = p2.Email</string>
-		<string>select p1.*
-from Person1 p1, Person2 p2
-where p1.Email = p2.Email and p1.Id &gt;= p2.Id</string>
-		<string>select c1.Name
-from Customers c1
-left join Orders o1
-on c1.Id = o1.CustomerId
-where o1.Id is null</string>
-		<string>select Name
-from Customers
-where Customers.Id not in (select distinct CustomerId from Orders)</string>
-		<string>insert into Orders
+		<string>/* good solution~*/
+/* generate a table meeting the requirements */
+select newt.Request_at Day,
+		 round(sum(case when newt.Status != 1 then 1 else 0 end)/count(*), 2) 'Cancellation Rate'
+from (
+	select * from Trips t
+	where t.Client_Id in (select Users_Id from Users where Banned='No')
+	and t.Driver_Id in (select Users_Id from Users where Banned='No')
+	and t.`Request_at` between '2013-10-01' and '2013-10-03'
+	) newt
+group by newt.Request_at</string>
+		<string>select newt.Request_at Day,
+		 sum(case when newt.Status != 1 then 1 else 0 end)/count(*)
+from (
+	select * from Trips t
+	where t.Client_Id in (select Users_Id from Users where Banned='No')
+	and t.Driver_Id in (select Users_Id from Users where Banned='No')
+	and t.`Request_at` between '2013-10-01' and '2013-10-03'
+	) newt
+group by newt.Request_at</string>
+		<string>select newt.Request_at Day,
+		 sum(case when newt.Status != 1 then 1 else 0 end)
+from (
+	select * from Trips t
+	where t.Client_Id in (select Users_Id from Users where Banned='No')
+	and t.Driver_Id in (select Users_Id from Users where Banned='No')
+	and t.`Request_at` between '2013-10-01' and '2013-10-03'
+	) newt
+group by newt.Request_at</string>
+		<string>select newt.Request_at Day,
+		 case when newt.Status != 1 then 1 else 0 end
+from (
+	select * from Trips t
+	where t.Client_Id in (select Users_Id from Users where Banned='No')
+	and t.Driver_Id in (select Users_Id from Users where Banned='No')
+	and t.`Request_at` between '2013-10-01' and '2013-10-03'
+	) newt</string>
+		<string>select newt.Request_at Day
+		 case when newt.Status != 1 then 1 else 0 end
+from (
+	select * from Trips t
+	where t.Client_Id in (select Users_Id from Users where Banned='No')
+	and t.Driver_Id in (select Users_Id from Users where Banned='No')
+	and t.`Request_at` between '2013-10-01' and '2013-10-03'
+	) newt</string>
+		<string>/* good solution~*/
+/* generate a table meeting the requirements */
+select * from Trips t
+where t.Client_Id in (select Users_Id from Users where Banned='No')
+and t.Driver_Id in (select Users_Id from Users where Banned='No')
+and t.`Request_at` between '2013-10-01' and '2013-10-03'</string>
+		<string>/* good solution~*/
+/* generate a table meeting the requirements */
+select * from Trips t
+where t.Client_Id not in (select Users_Id from Users where Banned='No')
+and t.Driver_Id not in (select Users_Id from Users where Banned='No')
+and t.`Request_at` between '2013-10-01' and '2013-10-03'</string>
+		<string>/* calculate cancellation rate each day */
+select t.Request_at Day, 
+		 round(if(isnull(cancel/total), 0, cancel/total), 2) 'cancellation rate' from (
+	select Request_at, count(*) total
+	from Trips
+	left join Users
+	on Trips.Client_Id = Users.Users_Id
+	where Users.Banned != 'Yes'
+	group by Request_at
+	) t
+left join (
+	select Trips.Request_at, count(*) cancel 
+	from Trips
+	left join Users
+	on Trips.Client_Id = Users.Users_Id
+	where Users.Banned != 'Yes'
+	and Status != 1
+	group by Request_at
+	) c
+on t.Request_at = c.Request_at</string>
+		<string>/* calculate cancellation rate each day */
+select t.Request_at, 
+		 round(if(isnull(cancel/total), 0, cancel/total), 2) 'cancellation rate' from (
+	select Request_at, count(*) total
+	from Trips
+	left join Users
+	on Trips.Client_Id = Users.Users_Id
+	where Users.Banned != 'Yes'
+	group by Request_at
+	) t
+left join (
+	select Trips.Request_at, count(*) cancel 
+	from Trips
+	left join Users
+	on Trips.Client_Id = Users.Users_Id
+	where Users.Banned != 'Yes'
+	and Status != 1
+	group by Request_at
+	) c
+on t.Request_at = c.Request_at</string>
+		<string>select t.Request_at, if(isnull(cancel/total), 0, cancel/total) 'cancellation rate' from (
+	select Request_at, count(*) total
+	from Trips
+	left join Users
+	on Trips.Client_Id = Users.Users_Id
+	where Users.Banned != 'Yes'
+	group by Request_at
+	) t
+left join (
+	select Trips.Request_at, count(*) cancel 
+	from Trips
+	left join Users
+	on Trips.Client_Id = Users.Users_Id
+	where Users.Banned != 'Yes'
+	and Status != 1
+	group by Request_at
+	) c
+on t.Request_at = c.Request_at</string>
+		<string>select Trips.Request_at, count(*) cancel 
+	from Trips
+	left join Users
+	on Trips.Client_Id = Users.Users_Id
+	where Users.Banned != 'Yes'
+	and Status != 1
+	group by Request_at</string>
+		<string>select Trips.Request_at, count(Trips.*) cancel 
+	from Trips
+	left join Users
+	on Trips.Client_Id = Users.Users_Id
+	where Users.Banned != 'Yes'
+	where Trips.Status != 1
+	group by Trips.Request_at</string>
+		<string>select Request_at, count(*) total
+	from Trips
+	left join Users
+	on Trips.Client_Id = Users.Users_Id
+	where Users.Banned != 'Yes'
+	group by Request_at</string>
+		<string>select Trips.Request_at, count(Trips.*) cancel 
+	from Trips
+	left join Users
+	on Trips.Client_Id = Users.Users_Id
+	where Users.Banned != 'Yes'
+	where Status != 1
+	group by Trips.Request_at</string>
+		<string>select Request_at, count(*) cancel 
+	from Trips
+	left join Users
+	on Trips.Client_Id = Users.Users_Id
+	where Users.Banned != 'Yes'
+	where Status != 1
+	group by Request_at</string>
+		<string>/* calculate cancellation rate each day */
+select t.Request_at, if(isnull(cancel/total), 0, cancel/total) 'cancellation rate' from (
+	select Request_at, count(*) total
+	from Trips
+	left join Users
+	on Trips.Client_Id = Users.Users_Id
+	where Users.Banned != 'Yes'
+	group by Request_at
+	) t
+left join (
+	select Request_at, count(*) cancel 
+	from Trips
+	left join Users
+	on Trips.Client_Id = Users.Users_Id
+	where Users.Banned != 'Yes'
+	where Status != 1
+	group by Request_at
+	) c
+on t.Request_at = c.Request_at</string>
+		<string>/* unbanned users */
+select Trips.* from Trips
+left join Users
+on Trips.Client_Id = Users.Users_Id
+where Users.Banned != 'Yes'</string>
+		<string>/* unbanned users */
+select * from Trips
+left join Users
+on Trips.Client_Id = Users.Users_Id</string>
+		<string>create table Users
+	(Users_Id int primary key,
+	Banned varchar(20),
+	Role enum('client', 'driver', 'partner'));
+insert into Users
 	values
-	(null, 3),
-	(null, 1)</string>
-		<string>create table Orders
+	(1, 'No', 1),
+	(2, 'Yes', 1),
+	(3, 'No', 1),
+	(4, 'No', 1),
+	(10, 'No', 2),
+	(11, 'No', 2),
+	(12, 'No', 2),
+	(13, 'No', 2);
+create table Trips
 	(Id int primary key auto_increment,
-	CustomerId int)</string>
-		<string>create table Customers
-	(Id int primary key auto_increment,
-	Name varchar(20));
-insert into Customers
+	Client_Id int,
+	Driver_Id int,
+	City_Id int,
+	Status enum('completed', 'cancelled_by_driver', 'cancelled_by_client'),
+	Request_at date,
+	foreign key (Client_Id) references Users (Users_Id),
+	foreign key (Driver_Id) references Users (Users_Id));
+insert into Trips
 	values
-	(null, 'Joe'),
-	(null, 'Henry'),
-	(null, 'Sam'),
-	(null, 'Max')</string>
-		<string>insert into Customers
-	values
-	(null, 'Joe'),
-	(null, 'Henry'),
-	(null, 'Sam'),
-	(null, 'Max')</string>
-		<string>create table Customers
-	(Id int primary key auto_increment,
-	Name varchar(2))</string>
-		<string>create table Customers
-	(Id int primary key auto_increment,
-	Name varchar(2));
-insert into Customers
-	values
-	(null, 'Joe'),
-	(null, 'Henry'),
-	(null, 'Sam'),
-	(null, 'Max')</string>
-		<string>select Email
-from Person1
-group by Email
-having count(*) &gt; 1</string>
-		<string>select p1.Email
-from Person1
-group by Email
-having count(*) &gt; 1</string>
-		<string>/* 182. Duplicate emails */
-select distinct p1.Email
-from Person1 p1, Person1 p2
-where p1.Email = p2.Email and p1.Id != p2.Id</string>
-		<string>/* 182. Duplicate emails */
-select p1.Email
-from Person1 p1, Person1 p2
-where p1.Email = p2.Email and p1.Id != p2.Id</string>
-		<string>/* 182. Duplicate emails */
-select *
-from Person1</string>
+	(null,1, 10, 1, 1, '2013-10-01'),
+	(null,2, 11, 1, 2, '2013-10-01'),
+	(null,3, 12, 6, 1, '2013-10-01'),
+	(null,4, 13, 6, 3, '2013-10-01'),
+	(null,1, 10, 1, 1, '2013-10-02'),
+	(null,2, 11, 6, 1, '2013-10-02'),
+	(null,3, 12, 6, 1, '2013-10-02'),
+	(null,2, 12, 12, 1, '2013-10-03'),
+	(null,3, 10, 12, 1, '2013-10-03'),
+	(null,4, 13, 12, 2, '2013-10-03')</string>
+		<string>select Request_at, count(*) total
+	from Trips
+	left join Users
+	on Trips.Client_Id = Users.User_Id
+	where Users.Banned != 'Yes'
+	group by Request_at</string>
 	</array>
 	<key>rdbms_type</key>
 	<string>mysql</string>

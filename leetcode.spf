@@ -716,12 +716,96 @@ from (
 group by newt.Request_at
 
 
+/* 571. Find median given frequency of numbers !!!!!!!!!!!!!!*/
+create table Numbers
+	(Number int,
+	Frequency int);
+insert into Numbers
+	values
+	(0, 7),
+	(1, 1),
+	(2, 3),
+	(3, 1);
+	
+/* calculate cumulative frequency */
+select n1.Number, sum(n2.Frequency) cumulative from Numbers n1, Numbers n2
+where n1.Number &gt;= n2.Number
+group by n1.Number;
 
-
+select avg(n1.Number) median from Numbers n1
+where n1.Frequency &gt;= abs((select sum(Frequency) from Numbers where Number &gt;= n1.Number)-
+							(select sum(Frequency) from Numbers where Number &lt;= n1.Number));
 
 	
+/* 577. Employee Bonus */
+create table Employee577
+	(empId int primary key,
+	name varchar(20),
+	supervisor int,
+	salary float default 10);
+insert into Employee577
+	values
+	(1, 'john', 3, 1000),
+	(2, 'dan', 3, 2000),
+	(3, 'brad', null, 4000),
+	(4, 'thomas', 3, 4000);
+create table bonus
+	(empId int,
+	bonus float default 10);
+insert into bonus
+	values
+	(2, 500),
+	(4, 2000);
 	
+select e.name, b.`bonus`
+from Employee577 e
+left join bonus b
+on e.empId = b.empId
+where b.bonus &lt; 1000 or b.bonus is null;
+
+
+/* 578. Get highest answer rate question */
+create table survey_log
+	(uid int,
+	action enum('show', 'answer', 'skip'),
+	question_id int,
+	answer_id int,
+	q_num int,
+	timestamp int);
+insert into survey_log
+	values
+	(5, 1, 285, null, 1, 123),
+	(5, 2, 285, 124124, 1, 124),
+	(5, 1, 369, null, 2, 125),
+	(5, 3, 369, null, 2, 126);
+	
+select s.question_id survey_log from (
+	select question_id, count(*) showed from survey_log
+	where action = 1
+	group by question_id
+	) s
+left join (
+	select question_id, count(*) answered from survey_log
+	where action = 2
+	group by question_id
+	) a
+on s.question_id = a.question_id
+order by a.answered/s.showed DESC
+limit 1;
+
+/* better sulotion */
+select question_id survey_log
+from (
+	select question_id, sum(case when action = 1 then 1 else 0 end) showed,
+		   sum(case when action = 2 then 1 else 0 end) answered
+	from survey_log
+	group by question_id
+	) t
+order by answered / showed desc
+limit 1;
 	</string>
+			<key>table</key>
+			<string>employee615</string>
 			<key>view</key>
 			<string>SP_VIEW_CUSTOMQUERY</string>
 			<key>windowVerticalDividerPosition</key>
@@ -736,224 +820,131 @@ group by newt.Request_at
 	<array/>
 	<key>queryHistory</key>
 	<array>
-		<string>/* good solution~*/
-/* generate a table meeting the requirements */
-select newt.Request_at Day,
-		 round(sum(case when newt.Status != 1 then 1 else 0 end)/count(*), 2) 'Cancellation Rate'
+		<string>/* better sulotion */
+select question_id survey_log
 from (
-	select * from Trips t
-	where t.Client_Id in (select Users_Id from Users where Banned='No')
-	and t.Driver_Id in (select Users_Id from Users where Banned='No')
-	and t.`Request_at` between '2013-10-01' and '2013-10-03'
-	) newt
-group by newt.Request_at</string>
-		<string>select newt.Request_at Day,
-		 sum(case when newt.Status != 1 then 1 else 0 end)/count(*)
-from (
-	select * from Trips t
-	where t.Client_Id in (select Users_Id from Users where Banned='No')
-	and t.Driver_Id in (select Users_Id from Users where Banned='No')
-	and t.`Request_at` between '2013-10-01' and '2013-10-03'
-	) newt
-group by newt.Request_at</string>
-		<string>select newt.Request_at Day,
-		 sum(case when newt.Status != 1 then 1 else 0 end)
-from (
-	select * from Trips t
-	where t.Client_Id in (select Users_Id from Users where Banned='No')
-	and t.Driver_Id in (select Users_Id from Users where Banned='No')
-	and t.`Request_at` between '2013-10-01' and '2013-10-03'
-	) newt
-group by newt.Request_at</string>
-		<string>select newt.Request_at Day,
-		 case when newt.Status != 1 then 1 else 0 end
-from (
-	select * from Trips t
-	where t.Client_Id in (select Users_Id from Users where Banned='No')
-	and t.Driver_Id in (select Users_Id from Users where Banned='No')
-	and t.`Request_at` between '2013-10-01' and '2013-10-03'
-	) newt</string>
-		<string>select newt.Request_at Day
-		 case when newt.Status != 1 then 1 else 0 end
-from (
-	select * from Trips t
-	where t.Client_Id in (select Users_Id from Users where Banned='No')
-	and t.Driver_Id in (select Users_Id from Users where Banned='No')
-	and t.`Request_at` between '2013-10-01' and '2013-10-03'
-	) newt</string>
-		<string>/* good solution~*/
-/* generate a table meeting the requirements */
-select * from Trips t
-where t.Client_Id in (select Users_Id from Users where Banned='No')
-and t.Driver_Id in (select Users_Id from Users where Banned='No')
-and t.`Request_at` between '2013-10-01' and '2013-10-03'</string>
-		<string>/* good solution~*/
-/* generate a table meeting the requirements */
-select * from Trips t
-where t.Client_Id not in (select Users_Id from Users where Banned='No')
-and t.Driver_Id not in (select Users_Id from Users where Banned='No')
-and t.`Request_at` between '2013-10-01' and '2013-10-03'</string>
-		<string>/* calculate cancellation rate each day */
-select t.Request_at Day, 
-		 round(if(isnull(cancel/total), 0, cancel/total), 2) 'cancellation rate' from (
-	select Request_at, count(*) total
-	from Trips
-	left join Users
-	on Trips.Client_Id = Users.Users_Id
-	where Users.Banned != 'Yes'
-	group by Request_at
+	select question_id, sum(case when action = 1 then 1 else 0 end) showed,
+		   sum(case when action = 2 then 1 else 0 end) answered
+	from survey_log
+	group by question_id
 	) t
+order by answered / showed desc
+limit 1</string>
+		<string>select s.question_id survey_log from (
+	select question_id, count(*) showed from survey_log
+	where action = 1
+	group by question_id
+	) s
 left join (
-	select Trips.Request_at, count(*) cancel 
-	from Trips
-	left join Users
-	on Trips.Client_Id = Users.Users_Id
-	where Users.Banned != 'Yes'
-	and Status != 1
-	group by Request_at
-	) c
-on t.Request_at = c.Request_at</string>
-		<string>/* calculate cancellation rate each day */
-select t.Request_at, 
-		 round(if(isnull(cancel/total), 0, cancel/total), 2) 'cancellation rate' from (
-	select Request_at, count(*) total
-	from Trips
-	left join Users
-	on Trips.Client_Id = Users.Users_Id
-	where Users.Banned != 'Yes'
-	group by Request_at
-	) t
+	select question_id, count(*) answered from survey_log
+	where action = 2
+	group by question_id
+	) a
+on s.question_id = a.question_id
+order by a.answered/s.showed DESC
+limit 1</string>
+		<string>select a.answered/s.showed survey_log from (
+	select question_id, count(*) showed from survey_log
+	where action = 1
+	group by question_id
+	) s
 left join (
-	select Trips.Request_at, count(*) cancel 
-	from Trips
-	left join Users
-	on Trips.Client_Id = Users.Users_Id
-	where Users.Banned != 'Yes'
-	and Status != 1
-	group by Request_at
-	) c
-on t.Request_at = c.Request_at</string>
-		<string>select t.Request_at, if(isnull(cancel/total), 0, cancel/total) 'cancellation rate' from (
-	select Request_at, count(*) total
-	from Trips
-	left join Users
-	on Trips.Client_Id = Users.Users_Id
-	where Users.Banned != 'Yes'
-	group by Request_at
-	) t
+	select question_id, count(*) answered from survey_log
+	where action = 2
+	group by question_id
+	) a
+on s.question_id = a.question_id
+order by survey_log DESC
+limit 1</string>
+		<string>on s.question_id = a.question_id</string>
+		<string>select a.answered/s.showed from (
+	select question_id, count(*) showed from survey_log
+	where action = 1
+	group by question_id
+	) s
 left join (
-	select Trips.Request_at, count(*) cancel 
-	from Trips
-	left join Users
-	on Trips.Client_Id = Users.Users_Id
-	where Users.Banned != 'Yes'
-	and Status != 1
-	group by Request_at
-	) c
-on t.Request_at = c.Request_at</string>
-		<string>select Trips.Request_at, count(*) cancel 
-	from Trips
-	left join Users
-	on Trips.Client_Id = Users.Users_Id
-	where Users.Banned != 'Yes'
-	and Status != 1
-	group by Request_at</string>
-		<string>select Trips.Request_at, count(Trips.*) cancel 
-	from Trips
-	left join Users
-	on Trips.Client_Id = Users.Users_Id
-	where Users.Banned != 'Yes'
-	where Trips.Status != 1
-	group by Trips.Request_at</string>
-		<string>select Request_at, count(*) total
-	from Trips
-	left join Users
-	on Trips.Client_Id = Users.Users_Id
-	where Users.Banned != 'Yes'
-	group by Request_at</string>
-		<string>select Trips.Request_at, count(Trips.*) cancel 
-	from Trips
-	left join Users
-	on Trips.Client_Id = Users.Users_Id
-	where Users.Banned != 'Yes'
-	where Status != 1
-	group by Trips.Request_at</string>
-		<string>select Request_at, count(*) cancel 
-	from Trips
-	left join Users
-	on Trips.Client_Id = Users.Users_Id
-	where Users.Banned != 'Yes'
-	where Status != 1
-	group by Request_at</string>
-		<string>/* calculate cancellation rate each day */
-select t.Request_at, if(isnull(cancel/total), 0, cancel/total) 'cancellation rate' from (
-	select Request_at, count(*) total
-	from Trips
-	left join Users
-	on Trips.Client_Id = Users.Users_Id
-	where Users.Banned != 'Yes'
-	group by Request_at
-	) t
+	select question_id, count(*) answered from survey_log
+	where action = 2
+	group by question_id
+	) a
+on s.question_id = a.question_id</string>
+		<string>select * from (
+	select question_id, count(*) showed from survey_log
+	where action = 1
+	group by question_id
+	) s
 left join (
-	select Request_at, count(*) cancel 
-	from Trips
-	left join Users
-	on Trips.Client_Id = Users.Users_Id
-	where Users.Banned != 'Yes'
-	where Status != 1
-	group by Request_at
-	) c
-on t.Request_at = c.Request_at</string>
-		<string>/* unbanned users */
-select Trips.* from Trips
-left join Users
-on Trips.Client_Id = Users.Users_Id
-where Users.Banned != 'Yes'</string>
-		<string>/* unbanned users */
-select * from Trips
-left join Users
-on Trips.Client_Id = Users.Users_Id</string>
-		<string>create table Users
-	(Users_Id int primary key,
-	Banned varchar(20),
-	Role enum('client', 'driver', 'partner'));
-insert into Users
+	select question_id, count(*) answered from survey_log
+	where action = 2
+	group by question_id
+	) a
+on s.question_id = a.question_id</string>
+		<string>select * from (
+	select question_id, count(*) showed from survey_log
+	where action = 1
+	group by question_id
+	) s
+left join (
+	select question_id, count(*) answered from survey_log
+	where action = 2
+	group by question_id
+	) a</string>
+		<string>select question_id, count(*) showed from survey_log
+where action = 1
+group by question_id</string>
+		<string>select question_id, count(*) answered from survey_log
+where action = 2
+group by question_id</string>
+		<string>select question_id, sum(question_id) answered from survey_log
+where action = 2
+group by question_id</string>
+		<string>select question_id, sum(question_id) from survey_log
+where action = 1
+group by question_id</string>
+		<string>select question_id from survey_log
+where action = 1
+group by question_id</string>
+		<string>select question_id from survey_log
+where action = 1</string>
+		<string>select question_id, sum(*) from survey_log
+where action = 1</string>
+		<string>select question_id, sum(*) from survey_log
+where action = 1
+group by question_id</string>
+		<string>create table survey_log
+	(uid int,
+	action enum('show', 'answer', 'skip'),
+	question_id int,
+	answer_id int,
+	q_num int,
+	timestamp int)</string>
+		<string>create table survey_log
+	(uid int,
+	action enum('show', 'answer', 'skip'),
+	question_id int,
+	answer_id int,
+	q_num int,
+	timestamp int);
+insert into survey_log
 	values
-	(1, 'No', 1),
-	(2, 'Yes', 1),
-	(3, 'No', 1),
-	(4, 'No', 1),
-	(10, 'No', 2),
-	(11, 'No', 2),
-	(12, 'No', 2),
-	(13, 'No', 2);
-create table Trips
-	(Id int primary key auto_increment,
-	Client_Id int,
-	Driver_Id int,
-	City_Id int,
-	Status enum('completed', 'cancelled_by_driver', 'cancelled_by_client'),
-	Request_at date,
-	foreign key (Client_Id) references Users (Users_Id),
-	foreign key (Driver_Id) references Users (Users_Id));
-insert into Trips
-	values
-	(null,1, 10, 1, 1, '2013-10-01'),
-	(null,2, 11, 1, 2, '2013-10-01'),
-	(null,3, 12, 6, 1, '2013-10-01'),
-	(null,4, 13, 6, 3, '2013-10-01'),
-	(null,1, 10, 1, 1, '2013-10-02'),
-	(null,2, 11, 6, 1, '2013-10-02'),
-	(null,3, 12, 6, 1, '2013-10-02'),
-	(null,2, 12, 12, 1, '2013-10-03'),
-	(null,3, 10, 12, 1, '2013-10-03'),
-	(null,4, 13, 12, 2, '2013-10-03')</string>
-		<string>select Request_at, count(*) total
-	from Trips
-	left join Users
-	on Trips.Client_Id = Users.User_Id
-	where Users.Banned != 'Yes'
-	group by Request_at</string>
+	(5, 1, 285, null, 1, 123),
+	(5, 2, 285, 124124, 1, 124),
+	(5, 1, 369, null, 2, 125),
+	(5, 3, 369, null, 2, 126)</string>
+		<string>select e.name, b.`bonus`
+from Employee577 e
+left join bonus b
+on e.empId = b.empId
+where b.bonus &lt; 1000 or b.bonus is null</string>
+		<string>select e.name, b.`bonus`
+from Employee577 e
+left join bonus b
+on e.empId = b.empId</string>
+		<string>select e.name, b.`bonus`
+from Employee577 e
+left join bonus b
+on e.empId = b.empId
+where b.bonus &lt; 1000</string>
 	</array>
 	<key>rdbms_type</key>
 	<string>mysql</string>

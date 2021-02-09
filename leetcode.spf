@@ -933,10 +933,118 @@ and s1.people &gt;= 100
 and s2.people &gt;= 100
 and s3.people &gt;= 100
 group by s1.id;
+
+
+/* 602. Friend requests ii: who has the most friends */
+create table request_accepted602 
+select * from request_accepted
+where accept_date != '2016-06-10';
 	
-	</string>
-			<key>table</key>
-			<string>courses</string>
+select req.id id, rec_num+req_num num from (
+	select accepter_id id, count(requester_id) rec_num from request_accepted602
+	group by accepter_id) rec
+right join (
+	select requester_id id, count(accepter_id) req_num from request_accepted602
+	group by requester_id) req
+on rec.id = req.id
+order by rec_num+req_num desc
+limit 1;
+
+select id1 id, count(id2) num 
+from(
+	select requester_id id1, accepter_id id2 from request_accepted602
+	union /* concate two tables */
+	select accepter_id id1, requester_id id2 from request_accepted602
+	) con
+group by id1
+order by count(id2) desc limit 1;
+
+
+/* 607. Sales Person */
+create table salesperson607
+	(sales_id int primary key auto_increment,
+	name varchar(20),
+	salary float default 10,
+	commission_rate int,
+	hire_date varchar(20));
+insert into salesperson607
+	values
+	(null, 'john', 100000, 6, '4/1/2006'),
+	(null, 'amy', 120000, 5, '5/1/2010'),
+	(null, 'mark', 65000, 12, '12/25/2008'),
+	(null, 'pam', 25000, 25, '1/1/2005'),
+	(null, 'alex', 50000, 10, '2/3/2007');
+create table company607
+	(com_id int primary key auto_increment,
+	name varchar(20),
+	city varchar(20));
+insert into company607
+	values
+	(null, 'red', 'boston'),
+	(null, 'orange', 'new york'),
+	(null, 'yellow', 'boston'),
+	(null, 'green', 'austin');
+create table orders607
+	(order_id int primary key,
+	date varchar(20),
+	com_id int,
+	sales_id int,
+	amount float default 10);
+insert into orders607
+	values
+	(1, '1/1/2014', 3, 4, 100000),
+	(2, '2/1/2014', 4, 5, 5000),
+	(3, '3/1/2014', 1, 1, 50000),
+	(4, '4/1/2014', 1, 4, 25000);
+	
+select s.name from orders607 o
+join company607 c
+on o.com_id = c.com_id and c.name = 'red'
+right join salesperson607 s
+on o.sales_id = s.sales_id
+where o.sales_id is null
+
+
+/* 612. Shortest distance in a plane */
+create table point_2d
+	(x float default 10,
+	y float default 10);
+insert into point_2d
+	values
+	(-1, -1),
+	(0, 0),
+	(-1, -2);
+
+select min(round(sqrt(pow(t1.x-t2.x, 2) + pow(t1.y-t2.y, 2)), 2)) shortest 
+from point_2d t1, point_2d t2
+where (t1.x, t1.y) != (t2.x, t2.y)
+
+
+/* 613. Shortest distance in a line */
+create table point
+	(x int);
+insert into point
+	values
+	(-1),
+	(0),
+	(2);
+	
+select min(abs(p1.x-p2.x)) shortest from point p1, point p2
+where p1.x != p2.x
+
+
+/* 614. Second Degree Follower */
+create table follow614
+	(followee varchar(2),
+	follower varchar(20));
+insert into follow614
+	values
+	('A', 'B'),
+	('B', 'C'),
+	('B', 'D'),
+	('D', 'E');
+
+</string>
 			<key>view</key>
 			<string>SP_VIEW_CUSTOMQUERY</string>
 			<key>windowVerticalDividerPosition</key>
@@ -951,139 +1059,106 @@ group by s1.id;
 	<array/>
 	<key>queryHistory</key>
 	<array>
-		<string>select s1.* from stadium s1, stadium s2, stadium s3
-where ((s1.id = s2.id + 1 and s2.id = s3.id + 1)
-or (s1.id = s2.id + 1 and s3.id = s1.id + 1)
-or (s1.id = s2.id -1 and s3.id = s2.id +1))
-and s1.people &gt;= 100
-and s2.people &gt;= 100
-and s3.people &gt;= 100
-group by s1.id</string>
-		<string>select s1.* from stadium s1, stadium s2, stadium s3
-where ((s1.id = s2.id + 1 and s2.id = s3.id + 1)
-or (s1.id = s2.id + 1 and s3.id = s1.id + 1)
-or (s1.id = s2.id -1 and s3.id = s2.id +1))
-and s1.people &gt;= 100
-and s2.people &gt;= 100
-and s3.people &gt;= 100</string>
-		<string>select distinct s1.id from stadium s1, stadium s2, stadium s3
-where ((s1.id = s2.id + 1 and s2.id = s3.id + 1)
-or (s1.id = s2.id + 1 and s3.id = s1.id + 1)
-or (s1.id = s2.id -1 and s3.id = s2.id +1))
-and s1.people &gt;= 100
-and s2.people &gt;= 100
-and s3.people &gt;= 100</string>
-		<string>select * from stadium s1, stadium s2, stadium s3
-where ((s1.id = s2.id + 1 and s2.id = s3.id + 1)
-or (s1.id = s2.id + 1 and s3.id = s1.id + 1)
-or (s1.id = s2.id -1 and s3.id = s2.id +1))
-and s1.people &gt;= 100
-and s2.people &gt;= 100
-and s3.people &gt;= 100</string>
-		<string>select * from stadium s1, stadium s2, stadium s3
-where (s1.id = s2.id + 1 and s2.id = s3.id + 1)
-or (s1.id = s2.id + 1 and s3.id = s1.id + 1)
-or (s1.id = s2.id -1 and s3.id = s2.id +1)
-and s1.people &gt;= 100
-and s2.people &gt;= 100
-and s3.people &gt;= 100</string>
-		<string>select * from stadium s1, stadium s2, stadium s3
-where
- (s1.id = s2.id + 1 and s2.id = s3.id + 1)
-or (s1.id = s2.id + 1 and s3.id = s1.id + 1)
-or (s1.id = s2.id -1 and s3.id = s2.id +1)
-and s1.people &gt;= 100
-and s2.people &gt;= 100
-and s3.people &gt;= 100</string>
-		<string>select * from stadium s1, stadium s2, stadium s3
-where s1.people &gt;= 100
-and s2.people &gt;= 100
-and s3.people &gt;= 100
-and (s1.id = s2.id + 1 and s2.id = s3.id + 1)
-or (s1.id = s2.id + 1 and s3.id = s1.id + 1)
-or (s1.id = s2.id -1 and s3.id = s2.id +1)</string>
-		<string>select * from stadium s1, stadium s2, stadium s3
-where s1.people &gt;= 100
-and s2.people &gt;= 100
-and s3.people &gt;= 100
-and s1.id - s2.id = 1
-and s2.id - s3.id = 1</string>
-		<string>select * from stadium s1, stadium s2, stadium s3
-where s1.people &gt;= 100
-and s2.people &gt;= 100
-and s3.people &gt;= 100</string>
-		<string>select * from stadium s1
-where people &gt;= 100</string>
-		<string>create table stadium
-	(id int primary key auto_increment,
-	date date,
-	people int);
-insert into stadium
+		<string>create table follow614
+	(followee varchar(2),
+	follower varchar(20));
+insert into follow614
 	values
-	(null, '2017-01-01', 10),
-	(null, '2017-01-02', 109),
-	(null, '2017-01-03', 150),
-	(null, '2017-01-04', 99),
-	(null, '2017-01-05', 145),
-	(null, '2017-01-06', 1455),
-	(null, '2017-01-07', 199),
-	(null, '2017-01-08', 188)</string>
-		<string>/* 596. Classes more than 5 students */
-select class from courses
-group by class
-having count(distinct student) &gt;= 5</string>
-		<string>/* 596. Classes more than 5 students */
-select class from courses
-group by class
-having count(*) &gt;= 5</string>
-		<string>select customer_number
-from orders586
-group by customer_number
-order by count(*) desc
-limit 1</string>
-		<string>create table orders586
-	(order_number int,
-	customer_number int,
-	order_date date,
-	required_date date,
-	shipped_date date,
-	status varchar(15),
-	comment varchar(200));
-insert into orders586
+	('A', 'B'),
+	('B', 'C'),
+	('B', 'D'),
+	('D', 'E')</string>
+		<string>select min(abs(p1.x-p2.x)) shortest from point p1, point p2
+where p1.x != p2.x</string>
+		<string>create table point
+	(x int);
+insert into point
 	values
-	(1, 1, '2017-04-09', '2017-04-13', '2017-04-12', 'closed', ' '),
-	(2, 2, '2017-04-15', '2017-04-20', '2017-04-18', 'closed', ' '),
-	(3, 3, '2017-04-16', '2017-04-25', '2017-04-20', 'closed', ' '),
-	(4, 3, '2017-04-18', '2017-04-28', '2017-04-25', 'closed', ' ')</string>
-		<string>create table orders
-	(order_number int,
-	customer_number int,
-	order_date date,
-	required_date date,
-	shipped_date date,
-	status varchar(15),
-	comment varchar(200))</string>
-		<string>select sum(TIV_2016) TIV_2016 from insurance a
-where 1 = (select count(*) from insurance b where a.LAT=b.LAT and a.LON=b.LON)
-and 1 &lt; (select count(*) from insurance c where a.TIV_2015=c.TIV_2015)</string>
-		<string>select * from insurance a
-where 1 = (select count(*) from insurance b where a.LAT=b.LAT and a.LON=b.LON)
-and 1 &lt; (select count(*) from insurance c where a.TIV_2015=c.TIV_2015)</string>
-		<string>create table insurance
-	(PID INT,
-	TIV_2015 float default 20,
-	TIV_2016 float default 20,
-	LAT float default 10,
-	LON float default 10);
-insert into insurance
+	(-1),
+	(0),
+	(2)</string>
+		<string>/* */
+
+select min(round(sqrt(pow(t1.x-t2.x, 2) + pow(t1.y-t2.y, 2)), 2)) shortest 
+from point_2d t1, point_2d t2
+where (t1.x, t1.y) != (t2.x, t2.y)</string>
+		<string>/* round(sqrt(pow(t1.x-t2.x, 2) + pow(t1.y-t2.y, 2)), 2) shortest*/
+
+select * from point_2d t1, point_2d t2
+where (t1.x, t1.y) != (t2.x, t2.y)</string>
+		<string>select * from point_2d t1, point_2d t2
+where t1.x != t2.x and t1.y != t2.y</string>
+		<string>select round(sqrt(pow(t1.x-t2.x, 2) + pow(t1.y-t2.y, 2)), 2) shortest from point_2d t1, point_2d t2
+where t1.x != t2.x and t1.y != t2.y</string>
+		<string>create table point_2d
+	(x float default 10,
+	y float default 10);
+insert into point_2d
 	values
-	(1, 10, 5, 10, 10),
-	(2, 20, 20, 20, 20),
-	(3, 10, 30, 20, 20),
-	(4, 10, 40, 40, 40)</string>
-		<string>select name
-from customer584
-where referee_id != 2 or referee_id is null</string>
+	(-1, -1),
+	(0, 0),
+	(-1, -2)</string>
+		<string>select s.name from orders607 o
+join company607 c
+on o.com_id = c.com_id and c.name = 'red'
+right join salesperson607 s
+on o.sales_id = s.sales_id
+where o.sales_id is null</string>
+		<string>select * from orders607 o
+join company607 c
+on o.com_id = c.com_id and c.name = 'red'
+right join salesperson607 s
+on o.sales_id = s.sales_id</string>
+		<string>select * from orders607 o
+join company607 c
+on o.com_id = c.com_id and c.name = 'red'</string>
+		<string>select * from orders607 o
+join company607 c
+on o.com_id = c.com_id</string>
+		<string>select * from salesperson607 s
+left join orders607 o
+on s.sales_id = o.sales_id 
+left join company607 c
+on o.com_id = c.com_id and c.name = 'red'</string>
+		<string>select * from salesperson607 s
+left join orders607 o
+on s.sales_id = o.sales_id</string>
+		<string>select * from salesperson607 s
+left join orders607 o
+on s.sales_id = o.sales_id 
+join company607 c
+on o.com_id = c.com_id</string>
+		<string>select * from salesperson607 s
+left join orders607 o
+on s.sales_id = o.sales_id 
+join company607 c
+on o.com_id = c.com_id and c.name = 'red'</string>
+		<string>select * from salesperson607 s
+left join orders607 o
+on s.sales_id = o.sales_id 
+left join company607 c
+on o.com_id = c.com_id
+where c.name != 'red'</string>
+		<string>select * from salesperson607 s
+left join orders607 o
+on s.sales_id = o.sales_id 
+left join company607 c
+on o.com_id = c.com_id</string>
+		<string>select * from salesperson607 s
+left join orders607 o, company607 c
+on s.sales_id = o.sales_id and o.com_id = c.com_id</string>
+		<string>create table orders607
+	(order_id int primary key,
+	date varchar(20),
+	com_id int,
+	sales_id int,
+	amount float default 10);
+insert into orders607
+	values
+	(1, '1/1/2014', 3, 4, 100000),
+	(2, '2/1/2014', 4, 5, 5000),
+	(3, '3/1/2014', 1, 1, 50000),
+	(4, '4/1/2014', 1, 4, 25000)</string>
 	</array>
 	<key>rdbms_type</key>
 	<string>mysql</string>

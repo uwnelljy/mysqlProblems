@@ -58,15 +58,19 @@
 			<data>
 			YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0
 			b3BYJG9iamVjdHMSAAGGoF8QD05TS2V5ZWRBcmNoaXZlctEICVRk
-			YXRhgAGoCwwXGBkaHiVVJG51bGzTDQ4PEBMWV05TLmtleXNaTlMu
-			b2JqZWN0c1YkY2xhc3OiERKAAoADohQVgASABYAHVHR5cGVUcm93
-			c18QHVNlbGVjdGlvbkRldGFpbFR5cGVOU0luZGV4U2V00hsPHB1c
-			TlNSYW5nZUNvdW50EACABtIfICEiWiRjbGFzc25hbWVYJGNsYXNz
-			ZXNaTlNJbmRleFNldKIjJFpOU0luZGV4U2V0WE5TT2JqZWN00h8g
-			JidcTlNEaWN0aW9uYXJ5oiYkAAgAEQAaACQAKQAyADcASQBMAFEA
-			UwBcAGIAaQBxAHwAgwCGAIgAigCNAI8AkQCTAJgAnQC9AMIAzwDR
-			ANMA2ADjAOwA9wD6AQUBDgETASAAAAAAAAACAQAAAAAAAAAoAAAA
-			AAAAAAAAAAAAAAABIw==
+			YXRhgAGtCwwZGhscHSEoLDA0OFUkbnVsbNMNDg8QFBhXTlMua2V5
+			c1pOUy5vYmplY3RzViRjbGFzc6MREhOAAoADgASjFRYXgAWABoAI
+			gAxUdHlwZVRyb3dzVGtleXNfECZTZWxlY3Rpb25EZXRhaWxUeXBl
+			UHJpbWFyeUtleWVkRGV0YWlsc9MNDg8eHyCgoIAH0iIjJCVaJGNs
+			YXNzbmFtZVgkY2xhc3Nlc18QE05TTXV0YWJsZURpY3Rpb25hcnmj
+			JCYnXE5TRGljdGlvbmFyeVhOU09iamVjdNIODykroSqACYAL0g8t
+			Li9ZTlMuc3RyaW5ngApSaWTSIiMxMl8QD05TTXV0YWJsZVN0cmlu
+			Z6MxMydYTlNTdHJpbmfSIiM1Nl5OU011dGFibGVBcnJheaM1NydX
+			TlNBcnJhedIiIyY5oiYnAAgAEQAaACQAKQAyADcASQBMAFEAUwBh
+			AGcAbgB2AIEAiACMAI4AkACSAJYAmACaAJwAngCjAKgArQDWAN0A
+			3gDfAOEA5gDxAPoBEAEUASEBKgEvATEBMwE1AToBRAFGAUkBTgFg
+			AWQBbQFyAYEBhQGNAZIAAAAAAAACAQAAAAAAAAA6AAAAAAAAAAAA
+			AAAAAAABlQ==
 			</data>
 			<key>contentSortColIsAsc</key>
 			<true/>
@@ -1044,7 +1048,86 @@ insert into follow614
 	('B', 'D'),
 	('D', 'E');
 
-</string>
+select f2.followee follower, count(distinct f2.follower) num from follow61 f1
+join follow614 f2
+on f1.follower = f2.followee
+group by f2.followee
+
+
+/* 618. Students report by geography !!!!!!!!!!!! */
+create table student618
+	(name varchar(20),
+	continent varchar(20));
+insert into student618
+	values
+	('jack', 'america'),
+	('pascal', 'europe'),
+	('xi', 'asia'),
+	('jane', 'america');
+
+select max(america) America, max(asia) Asia, max(europe) Europe
+from (	
+	select 
+		case when continent = 'america' then @r1 := @r1 + 1
+		  	  when continent = 'asia' then @r2 := @r2 + 1
+		  	  when continent = 'europe' then @r3 := @r3 + 1 end id,
+		case when continent = 'america' then name else null end america,
+		case when continent = 'asia' then name else null end asia,
+		case when continent = 'europe' then name else null end europe
+	from student618, (select @r1:= 0, @r2:= 0, @r3:= 0) ids
+	order by name
+	) temp
+group by id;
+
+
+/* 619. Biggest single number */
+create table number619
+	(num float default 10);
+insert into number619
+	values
+	(8),(8),(3),(3),(1),(4),(5),(6);
+
+select num
+from number619
+group by num
+having count(num) = 1
+order by num desc
+limit 1;
+
+
+/* 620. Not boring movies */
+create table cinema620
+	(id int primary key auto_increment,
+	movie varchar(20),
+	description varchar(20),
+	rating float default 10);
+insert into cinema620
+	values
+	(null, 'war', 'great 3d', 8.9),
+	(null, 'science', 'fiction', 8.5),
+	(null, 'irish', 'boring', 6.2),
+	(null, 'ice song', 'fantacy', 8.6),
+	(null, 'house card', 'interesting', 9.1);
+	
+select * from cinema620
+where id % 2 != 0
+and description not like '%boring%'
+order by rating desc;
+
+
+/* 627. Swap salary */
+/* create a new table */
+select id, name, 
+	(case when sex = 'm' then 'f' else 'm' end) sex, salary from salary;
+
+/* update query and no intermediate temp table */
+update salary set sex = (case when sex = 'm' then 'f' else 'm' end);
+update salary set sex = char(ascii('f') + ascii('m') - ascii(sex));
+
+
+/* finished. */</string>
+			<key>table</key>
+			<string>salary</string>
 			<key>view</key>
 			<string>SP_VIEW_CUSTOMQUERY</string>
 			<key>windowVerticalDividerPosition</key>
@@ -1059,106 +1142,136 @@ insert into follow614
 	<array/>
 	<key>queryHistory</key>
 	<array>
-		<string>create table follow614
-	(followee varchar(2),
-	follower varchar(20));
-insert into follow614
+		<string>update salary set sex = char(ascii('f') + ascii('m') - ascii(sex))</string>
+		<string>/* update query and no intermediate temp table */
+update salary set sex = (case when sex = 'm' then 'f' else 'm' end)</string>
+		<string>/* 627. Swap salary */
+/* create a new table */
+select id, name, 
+	(case when sex = 'm' then 'f' else 'm' end) sex, salary from salary</string>
+		<string>select id, name, 
+	(case when sex = 'm' then 'f' else 'm' end) sex, salary from salary</string>
+		<string>/* 627. Swap salary */
+select id, name, 
+	(case when sex = 'm' then 'f' else 'm' end) sex, salary from salary</string>
+		<string>Salary</string>
+		<string>select * from cinema620
+where id % 2 != 0
+and description not like '%boring%'
+order by rating desc</string>
+		<string>create table cinema620
+	(id int primary key auto_increment,
+	movie varchar(20),
+	description varchar(20),
+	rating float default 10);
+insert into cinema620
 	values
-	('A', 'B'),
-	('B', 'C'),
-	('B', 'D'),
-	('D', 'E')</string>
-		<string>select min(abs(p1.x-p2.x)) shortest from point p1, point p2
-where p1.x != p2.x</string>
-		<string>create table point
-	(x int);
-insert into point
+	(null, 'war', 'great 3d', 8.9),
+	(null, 'science', 'fiction', 8.5),
+	(null, 'irish', 'boring', 6.2),
+	(null, 'ice song', 'fantacy', 8.6),
+	(null, 'house card', 'interesting', 9.1)</string>
+		<string>select num
+from number619
+group by num
+having count(num) = 1
+order by num desc
+limit 1</string>
+		<string>select num, count(num)
+from number619
+group by num
+having count(num) = 1
+order by num desc
+limit 1</string>
+		<string>select num, count(num)
+from number619
+group by num
+having count(num) = 1
+order by num
+limit 1</string>
+		<string>create table number619
+	(num float default 10);
+insert into number619
 	values
-	(-1),
-	(0),
-	(2)</string>
-		<string>/* */
-
-select min(round(sqrt(pow(t1.x-t2.x, 2) + pow(t1.y-t2.y, 2)), 2)) shortest 
-from point_2d t1, point_2d t2
-where (t1.x, t1.y) != (t2.x, t2.y)</string>
-		<string>/* round(sqrt(pow(t1.x-t2.x, 2) + pow(t1.y-t2.y, 2)), 2) shortest*/
-
-select * from point_2d t1, point_2d t2
-where (t1.x, t1.y) != (t2.x, t2.y)</string>
-		<string>select * from point_2d t1, point_2d t2
-where t1.x != t2.x and t1.y != t2.y</string>
-		<string>select round(sqrt(pow(t1.x-t2.x, 2) + pow(t1.y-t2.y, 2)), 2) shortest from point_2d t1, point_2d t2
-where t1.x != t2.x and t1.y != t2.y</string>
-		<string>create table point_2d
-	(x float default 10,
-	y float default 10);
-insert into point_2d
-	values
-	(-1, -1),
-	(0, 0),
-	(-1, -2)</string>
-		<string>select s.name from orders607 o
-join company607 c
-on o.com_id = c.com_id and c.name = 'red'
-right join salesperson607 s
-on o.sales_id = s.sales_id
-where o.sales_id is null</string>
-		<string>select * from orders607 o
-join company607 c
-on o.com_id = c.com_id and c.name = 'red'
-right join salesperson607 s
-on o.sales_id = s.sales_id</string>
-		<string>select * from orders607 o
-join company607 c
-on o.com_id = c.com_id and c.name = 'red'</string>
-		<string>select * from orders607 o
-join company607 c
-on o.com_id = c.com_id</string>
-		<string>select * from salesperson607 s
-left join orders607 o
-on s.sales_id = o.sales_id 
-left join company607 c
-on o.com_id = c.com_id and c.name = 'red'</string>
-		<string>select * from salesperson607 s
-left join orders607 o
-on s.sales_id = o.sales_id</string>
-		<string>select * from salesperson607 s
-left join orders607 o
-on s.sales_id = o.sales_id 
-join company607 c
-on o.com_id = c.com_id</string>
-		<string>select * from salesperson607 s
-left join orders607 o
-on s.sales_id = o.sales_id 
-join company607 c
-on o.com_id = c.com_id and c.name = 'red'</string>
-		<string>select * from salesperson607 s
-left join orders607 o
-on s.sales_id = o.sales_id 
-left join company607 c
-on o.com_id = c.com_id
-where c.name != 'red'</string>
-		<string>select * from salesperson607 s
-left join orders607 o
-on s.sales_id = o.sales_id 
-left join company607 c
-on o.com_id = c.com_id</string>
-		<string>select * from salesperson607 s
-left join orders607 o, company607 c
-on s.sales_id = o.sales_id and o.com_id = c.com_id</string>
-		<string>create table orders607
-	(order_id int primary key,
-	date varchar(20),
-	com_id int,
-	sales_id int,
-	amount float default 10);
-insert into orders607
-	values
-	(1, '1/1/2014', 3, 4, 100000),
-	(2, '2/1/2014', 4, 5, 5000),
-	(3, '3/1/2014', 1, 1, 50000),
-	(4, '4/1/2014', 1, 4, 25000)</string>
+	(8),(8),(3),(3),(1),(4),(5),(6)</string>
+		<string>select max(america) America, max(asia) Asia, max(europe) Europe
+from (	
+	select 
+		case when continent = 'america' then @r1 := @r1 + 1
+		  	  when continent = 'asia' then @r2 := @r2 + 1
+		  	  when continent = 'europe' then @r3 := @r3 + 1 end id,
+		case when continent = 'america' then name else null end america,
+		case when continent = 'asia' then name else null end asia,
+		case when continent = 'europe' then name else null end europe
+	from student618, (select @r1:= 0, @r2:= 0, @r3:= 0) ids
+	order by name
+	) temp
+group by id</string>
+		<string>select id, max(america) America, max(asia) Asia, max(europe) Europe
+from (	
+	select 
+		case when continent = 'america' then @r1 := @r1 + 1
+		  	  when continent = 'asia' then @r2 := @r2 + 1
+		  	  when continent = 'europe' then @r3 := @r3 + 1 end id,
+		case when continent = 'america' then name else null end america,
+		case when continent = 'asia' then name else null end asia,
+		case when continent = 'europe' then name else null end europe
+	from student618, (select @r1:= 0, @r2:= 0, @r3:= 0) ids
+	order by name
+	) temp
+group by id</string>
+		<string>select 
+		case when continent = 'america' then @r1 := @r1 + 1
+		  	  when continent = 'asia' then @r2 := @r2 + 1
+		  	  when continent = 'europe' then @r3 := @r3 + 1 end id,
+		case when continent = 'america' then name else null end america,
+		case when continent = 'asia' then name else null end asia,
+		case when continent = 'europe' then name else null end europe
+	from student618, (select @r1:= 0, @r2:= 0, @r3:= 0) ids
+	order by name</string>
+		<string>select * from (	
+	select 
+		case when continent = 'america' then @r1 := @r1 + 1
+		  	  when continent = 'asia' then @r2 := @r2 + 1
+		  	  when continent = 'europe' then @r3 := @r3 + 1 end id,
+		case when continent = 'america' then name else null end america,
+		case when continent = 'asia' then name else null end asia,
+		case when continent = 'europe' then name else null end europe
+	from student618, (select @r1:= 0, @r2:= 0, @r3:= 0) ids
+	order by name
+	) temp
+group by id</string>
+		<string>select * from (	
+	select 
+		case when continent = 'america' then @r1 := @r1 + 1
+		  	  when continent = 'asia' then @r2 := @r2 + 1
+		  	  when continent = 'europe' then @r3 := @r3 + 1 end id,
+		case when continent = 'america' then name else null end america,
+		case when continent = 'asia' then name else null end asia,
+		case when continent = 'europe' then name else null end europe
+	from student618, (select @r1:= 0, @r2:= 0, @r3:= 0) ids
+	order by name
+	) temp
+order by id</string>
+		<string>select 
+	case when continent = 'america' then @r1 := @r1 + 1
+		  when continent = 'asia' then @r2 := @r2 + 1
+		  when continent = 'europe' then @r3 := @r3 + 1 end id,
+	case when continent = 'america' then name else null end america,
+	case when continent = 'asia' then name else null end asia,
+	case when continent = 'europe' then name else null end europe
+from student618, (select @r1:= 0, @r2:= 0, @r3:= 0) ids
+order by name</string>
+		<string>select 
+	case when continent = 'america' then @r1 := @r1 + 1
+		  when continent = 'asia' then @r2 := @r2 + 1
+		  when continent = 'europe' then @r3 := @r3 + 1 end id,
+	case when continent = 'america' then name else null end america,
+	case when continent = 'asia' then name else null end asia,
+	case when continent = 'europe' then name else null end europe
+from student618
+order by name</string>
+		<string>select @r1:= 0, @r2:= 0, @r3:= 0</string>
 	</array>
 	<key>rdbms_type</key>
 	<string>mysql</string>
